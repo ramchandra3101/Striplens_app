@@ -1,12 +1,13 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
+import { useNavigation } from '@react-navigation/native';
 import styles from "../styles/styles"; // Importing the styles
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'; 
 
 export default function LibraryImage() {
-  const [file, setFile] = useState(null); // Stores the image uri
   const [error, setError] = useState(null); // Stores any error message
+  const navigation = useNavigation();
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -18,9 +19,12 @@ export default function LibraryImage() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images, // Only allow images
         quality: 1, // High-quality image
       });
-      if (!result.cancelled) {
-        setFile(result.uri);
+      if (!result.cancelled && result.uri) {
+        console.log("Image selected: ", result.uri); 
+        navigation.navigate('ImagePreview', { imageUri: result.uri });
         setError(null);
+      } else {
+        setError('No image selected');
       }
     }
   };
@@ -32,14 +36,9 @@ export default function LibraryImage() {
         <MaterialCommunityIcons name="folder-multiple-image" style={styles.icon} />
       </TouchableOpacity>
 
-      {/* Display selected image */}
-      {file ? (
-        <View style={styles.imagePreviewContainer}>
-          <Image source={{ uri: file }} style={styles.imagePreview} />
-        </View>
-      ) : (
-        error && <Text style={styles.errorText}>{error}</Text>
-      )}
+      {/* Display any error */}
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
+
   );
 }

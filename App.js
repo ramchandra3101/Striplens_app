@@ -1,28 +1,30 @@
 import React from 'react';
-import { View, Text, SafeAreaView, StatusBar } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import LibraryImage from './components/LibraryImage';
-import CameraOption from './components/CameraOption';
-import styles from './styles/styles';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import MainPage from './components/MainPage'; 
+import ImagePreview from './components/ImagePreview';
+import Header from './components/Header';
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" />
-      <LinearGradient
-        colors={['#4c669f', '#3b5998', '#192f6a']}
-        style={styles.gradient}
-      >
-        <View style={styles.main_container}>
-          <View style={styles.title_container}>
-            <Text style={styles.title}>StripLens</Text>
-          </View>
-          <View style={styles.options_container}>
-            <LibraryImage />
-            <CameraOption />
-          </View>
-        </View>
-      </LinearGradient>
-    </SafeAreaView>
+    
+    <NavigationContainer>
+      <Header/>
+      <Stack.Navigator initialRouteName="Main">
+        <Stack.Screen
+          name="Main"
+          component={MainPage}
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen
+          name="ImagePreview"
+          component={ImagePreview}
+          options={{ title: 'Image Preview' }} 
+        />
+
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }

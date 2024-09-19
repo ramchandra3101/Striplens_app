@@ -62,4 +62,5 @@ export default StyleSheet.create({
     padding: 10,
     marginTop: 200, // Added margin top to create some space
   },
+
 });
