@@ -1,34 +1,29 @@
-import fetch from 'node-fetch';
+import { FormData } from "formdata-node"
+import fs from "fs"
 
-const postData = new URLSearchParams({
-  format: 'PNG',
-  output_type: 'cutout',
-  image_url:
-    '',
-});
 
-const options = {
+const form = new FormData()
+const photo = fs.createReadStream('/Users/rcyerramsetti/Downloads/Strip Detection/striplens/strip.png')
+form.append('image_file', photo)
+
+fetch('https://clipdrop-api.co/remove-background/v1', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    Accept: 'application/json',
-    'X-Picsart-API-Key':"eyJraWQiOiI5NzIxYmUzNi1iMjcwLTQ5ZDUtOTc1Ni05ZDU5N2M4NmIwNTEiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhdXRoLXNlcnZpY2UtNjg1MjZmMWItZGEyMi00ODMxLTk5YTQtYjJkY2Y1OWZjZDg1IiwiYXVkIjoiNDM0MDM3MzkzMDAxMTAxIiwibmJmIjoxNzI3MTk5NTE2LCJzY29wZSI6WyJiMmItYXBpLmdlbl9haSIsImIyYi1hcGkuaW1hZ2VfYXBpIl0sImlzcyI6Imh0dHBzOi8vYXBpLnBpY3NhcnQuY29tL3Rva2VuLXNlcnZpY2UiLCJvd25lcklkIjoiNDM0MDM3MzkzMDAxMTAxIiwiaWF0IjoxNzI3MTk5NTE2LCJqdGkiOiJlMzg5ODY3NS1kNDk4LTRkNmMtYjg3OS1jMzFkNDdkZmQ4OGIifQ.dxIs5svUt7BSacLi91XasAtZcP4ccYXjPmHFr4Q4dVWDhu30tbE0qLIMtrM_zLgjtBMwtGzaL011bBDeoOgP5ndMK5GML24bf2mbUTgiE4gx12algslsNPapMI3BLPDK92E7V4z_N5lcuB0tAonqRc6Dd9RxezGOphrKdNV7kiMSm4-dESRdvcHrbj_irU2jg1Ule-til7xJlsbwg79JK9AQrj-7zlNfcaKoCbBkdCkoGNA9prVamtkWkhUs8WJBXYF7t9YROHfWI7aDFQmEeBq-mHxOVBUh8AsU141CCRTNIgDnpaYhXv4YQAZeFE6xIfv01u5hi7etTZblRnKMjQ"
-,
+    'x-api-key': '337cdabf80c3e5329f19777dd0bff4a6cb9fb0e9f85dbf96261295103bdb2a5f3bd9e077655027efd9b05c00facaa7aa',
   },
-  body: postData,
-};
+  body: form,
+})
+  .then(response => response.arrayBuffer())
+  .then(buffer => {
+    // buffer here is a binary representation of the returned image
+    const nodeBuffer = Buffer.from(buffer);
 
-const removeBg = async () => {
-  try {
-    const response = await fetch(
-      'https://api.picsart.io/tools/1.0/removebg',
-      options
-    );
-    const data = await response.json();
-    console.log(data);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-};
-
-removeBg();
+    // Write the binary data to an image file (e.g., output.png)
+    fs.writeFile('output.png', nodeBuffer, (err) => {
+      if (err) {
+        console.error('Error saving the image:', err);
+      } else {
+        console.log('Image saved successfully as output.png');
+      }
+    });
+  })
