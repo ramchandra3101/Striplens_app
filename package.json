@@ -2,6 +2,7 @@
   "name": "striplens",
   "version": "1.0.0",
   "main": "expo/AppEntry.js",
+  "type": "module",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -16,7 +17,9 @@
     "expo-image-picker": "^15.0.7",
     "expo-linear-gradient": "~13.0.2",
     "expo-status-bar": "~1.12.1",
+    "fetch": "^1.1.0",
     "image-picker": "^0.3.1",
+    "node-fetch": "^3.3.2",
     "react": "18.2.0",
     "react-native": "0.74.5",
     "react-native-camera": "^4.2.1",

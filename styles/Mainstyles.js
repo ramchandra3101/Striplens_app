@@ -3,20 +3,18 @@ import { StyleSheet } from 'react-native';
 export default StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: 'white',
       },
       gradient: {
         flex: 1,
       },
       main_container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        
       },
       options_container: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         justifyContent: 'space-around',
-        alignItems: 'center',
         width: '100%',
       },
 });

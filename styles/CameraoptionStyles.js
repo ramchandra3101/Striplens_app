@@ -1,15 +1,13 @@
-
-
 import { StyleSheet } from "react-native";
 export default StyleSheet.create({
-    imageContainer: {
+    Cameracontainer: {
     flex: 0.5, 
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center', 
-    padding: 10, 
-    marginTop: 150, // Added margin top to create some space
-  },
-  button: {
+    padding: 10,
+    marginTop: 200, 
+    },
+    button: {
     justifyContent: 'center',
     alignItems: 'center',
     width: 100,
@@ -31,5 +29,5 @@ export default StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginTop: 15,
-  },
-    });
+  }, 
+});

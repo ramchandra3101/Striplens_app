@@ -1,25 +1,25 @@
 import React, { startTransition } from 'react';
 import { View, Image, TouchableOpacity, Text } from 'react-native';
-import styles from '../styles/Imagepreviewstyles'; // Importing the styles
+import Imagepreviewstyles from '../styles/Imagepreviewstyles'; // Importing the styles
+import { useNavigation } from '@react-navigation/native';
 
-export default function ImagePreview({ route, navigation }) {
-  const { imageUri } = route.params; // Access the image URI passed as parameter
-  console.log("Received imageUri:", imageUri);
-  console.log("hello")
+export default function ImagePreview({ route }) {
+  const { imageUri } = route.params;
+  const navigation = useNavigation()
   return (
-    <View style={styles.imagePreviewPage}>
+    <View style={Imagepreviewstyles.imagePreviewPage}>
       {/* Display the selected image in a box */}
-      <View style={styles.imagePreviewBox}>
+      <View style={Imagepreviewstyles.imagePreviewBox}>
       {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.imageInBox} />
+          <Image source={{ uri: imageUri }} style={Imagepreviewstyles.imageInBox} />
         ) : (
           <Text>No image selected</Text>
         )}
       </View>
 
       {/* Button to process image */}
-      <TouchableOpacity style={styles.processButton} onPress={() => {/* Add image processing logic later */}}>
-        <Text style={styles.processButtonText}>Process</Text>
+      <TouchableOpacity style={Imagepreviewstyles.processButton} onPress={()=>{}}>
+        <Text style={Image.processButtonText}>Process</Text>
       </TouchableOpacity>
     </View>
   );
