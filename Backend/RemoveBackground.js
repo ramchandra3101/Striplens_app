@@ -67,7 +67,6 @@ async function RemoveBackground(imagePath) {
 
     return new Promise((resolve, reject) => {
       fileStream.on("finish", () => {
-        console.log(`Image with background removed saved to ${outputFilePath}`);
         resolve(outputFilePath);
       });
       fileStream.on("error", (err) => {

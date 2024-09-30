@@ -5,7 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import MainPage from "./components/MainPage";
 import ImagePreview from "./components/ImagePreview";
 import Header from "./components/Header";
-import ProcessedImage from "./components/ProcessedImage";
+import processedImage from "./components/processedImage";
 
 const Stack = createStackNavigator();
 
@@ -26,7 +26,7 @@ export default function App() {
         />
         <Stack.Screen
           name="ProcessedImage"
-          component={ProcessedImage}
+          component={processedImage}
           options={{ title: "Processed Image" }}
         />
       </Stack.Navigator>

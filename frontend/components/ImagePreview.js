@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  ActivityIndiactor,
+  ActivityIndicator,
 } from "react-native";
 import Imagepreviewstyles from "../styles/Imagepreviewstyles"; // Importing the styles
 import { useNavigation } from "@react-navigation/native";
@@ -13,25 +13,37 @@ import React, { useState } from "react";
 
 export default function ImagePreview({ route }) {
   const { imageUri } = route.params;
-  console.log(imageUri);
-  const [isprocessing, setIsProcessing] = useState(false);
   const navigation = useNavigation();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   //process Image function
 
   const handleProcess = async () => {
-    setprocessing(true);
-
-    Alert.alert(
-      "Image Processing . . .",
-      "Please wait while we process the image",
-      [{ text: "OK" }]
-    );
-    setTimeout(() => {
-      setisprocessing(false);
-      navigation.navigate("ProcessedImage", { proccessedImageUri: imageUri });
-    }, 4000);
+    setIsProcessing(true);
+    try {
+      const response = await fetch("http://10.0.2.2:3000/processImage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ imageUri }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        navigation.navigate("ProcessedImage", {
+          processedImageUri: result.processedImageUri,
+        });
+      } else {
+        throw new Error(result.error || "Unknown Error");
+      }
+    } catch (error) {
+      console.error(`Error processing image: ${error.message}`);
+      Alert.alert("Error", "Failed to process image");
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
   return (
     <View style={Imagepreviewstyles.imagePreviewPage}>
       {/* Display the selected image in a box */}
@@ -50,10 +62,10 @@ export default function ImagePreview({ route }) {
       <TouchableOpacity
         style={Imagepreviewstyles.processButton}
         onPress={handleProcess}
-        disabled={isProcessing} // Disable the button while processing
+        disabled={isProcessing}
       >
         {isProcessing ? (
-          <ActivityIndicator size="small" color="#FFF" /> // Loading indicator while processing
+          <ActivityIndicator color="#ffffff" />
         ) : (
           <Text style={Imagepreviewstyles.processButtonText}>Process</Text>
         )}

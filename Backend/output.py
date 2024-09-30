@@ -67,7 +67,6 @@ def process_image(image_path):
 
             output_path = os.path.splitext(image_path)[0] + '_processed.png'
             cv2.imwrite(output_path, straightened_image)
-            print(f"Straightened image saved to {output_path}")
             return straightened_image, output_path  # Return the processed image for further use
         else:
             print("Processing failed.")
@@ -104,7 +103,8 @@ def convert_to_bw_and_plot(cropped_img, output_folder):
     plot_output_path = os.path.join(output_folder, 'intensity_plot.png')
     plt.savefig(plot_output_path)
     plt.close()
-    print(f"Plot saved to {plot_output_path}")
+    
+
     
 
 
@@ -122,11 +122,14 @@ if __name__ == '__main__':
         sys.exit(1) # Exit the program
 
     input_image = sys.argv[1] # Get the image path from the command line argument
-    processed_image, output_image_path = process_image(input_image) # Process the image
+    straightened_image, processed_output_path = process_image(input_image) # Process the image
 
 
-    if processed_image is not None:
-        cropped_image = crop_and_display(processed_image)
-        output_folder = os.path.join(output_image_path)
-        convert_to_bw_and_plot(cropped_image, os.path.dirname(output_folder))
+    if straightened_image is not None:
+        cropped_image = crop_and_display(straightened_image)
+        plot_output_path = os.path.join(processed_output_path)
+        convert_to_bw_and_plot(cropped_image, os.path.dirname(plot_output_path))
+
+        print(f"{processed_output_path}\n{plot_output_path}")
+
     
