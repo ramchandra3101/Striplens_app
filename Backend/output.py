@@ -103,6 +103,8 @@ def convert_to_bw_and_plot(cropped_img, output_folder):
     plot_output_path = os.path.join(output_folder, 'intensity_plot.png')
     plt.savefig(plot_output_path)
     plt.close()
+
+    return plot_output_path
     
 
     
@@ -127,8 +129,7 @@ if __name__ == '__main__':
 
     if straightened_image is not None:
         cropped_image = crop_and_display(straightened_image)
-        plot_output_path = os.path.join(processed_output_path)
-        convert_to_bw_and_plot(cropped_image, os.path.dirname(plot_output_path))
+        plot_output_path = convert_to_bw_and_plot(cropped_image, os.path.dirname(processed_output_path))
 
         print(f"{processed_output_path}\n{plot_output_path}")
 

@@ -25,7 +25,6 @@ export default function LibraryImage() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images, // Only allow images
         quality: 1, // High-quality image
       });
-      console.log(result);
       if (result.cancelled) {
         setError("No image selected");
         return; // Set the error message

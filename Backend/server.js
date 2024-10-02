@@ -2,51 +2,84 @@ import RemoveBackground from "./RemoveBackground.js";
 import { exec } from "child_process"; // Import exec from child_process
 import path from "path";
 import { fileURLToPath } from "url";
-
 import express from "express";
 import bodyparser from "body-parser";
+import uploadToS3 from "./uploadtoS3.js";
+import multer from "multer";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const upload = multer({ dest: "uploads/" });
 
 app.use(bodyparser.json());
 
 //API endpoint to receive the image URI from mobile app
 
-app.post("/processImage", async (req, res) => {
-  const { imageUri } = req.body;
+app.post("/processImage", upload.single("image"), async (req, res) => {
+  const imageUri = req.file.path;
+  console.log("imageUri: " + imageUri);
+
   if (!imageUri) {
     return res.status(400).json({ error: "Invalid image URI" });
   }
   try {
-    const { processedImageUri, plotImagePath } = await processImage(imageUri);
-    res.json({ success: true, processedImageUri, plotImagePath });
+    const processedImageUri = await processImage(imageUri);
+    res.json({ success: true, processedImageUri });
   } catch (error) {
     console.error(`Error processing image: ${error.message}`);
     res.status(500).json({ error: "Error processing image" });
   }
 });
 
-const processImage = async (imagePath) => {
+const processImage = async (imageUri) => {
   try {
-    const processedImageURI = await RemoveBackground(imagePath);
-    // console.log(`Processed Image URI: ${processedImageURI}`);;
-    //  passING this URI to the Python script
-    await callPythonScript(processedImageURI);
+    //Step:1 uploading image to S3
+    const s3ImageURL = await uploadToS3(imageUri, path.basename(imageUri));
 
-    return processedImageURI;
+    // Step:2 Usinhg S# URL to remove Background of Image
+    const nobgURI = await RemoveBackground(s3ImageURL);
+
+    const folderName = path.basename(s3ImageURL, path.extname(s3ImageURL));
+
+    const localImagePath = path.join(
+      __dirname,
+      "downloads",
+      folderName,
+      path.basename(nobgURI)
+    );
+
+    //  passING this URI to the Python script
+    const { croppedImagePath, plotImagePath } = await callPythonScript(
+      localImagePath
+    );
+
+    const croppedImageS3Url = await uploadToS3(
+      croppedImagePath,
+      `${folderName}/${path.basename(imageUri)}`
+    );
+    const plotImageS3Url = await uploadToS3(
+      plotImagePath,
+      `${folderName}/${path.basename(imageUri)}`
+    );
+
+    return {
+      originalImage: s3ImageURL,
+      croppedImage: croppedImageS3Url,
+      plotImage: plotImageS3Url,
+    };
   } catch (error) {
-    console.error(`Error processing image: ${error.message}`);
+    console.error(`Error processing image from server.js: ${error.message}`);
+    throw error;
   }
 };
 
-const callPythonScript = async (imagePath) => {
+const callPythonScript = async (processedImageURI) => {
   const pythonScriptPath = path.join(__dirname, "output.py");
 
   return new Promise((resolve, reject) => {
     exec(
-      `python3 ${pythonScriptPath} ${imagePath}`,
+      `python3 ${pythonScriptPath} ${processedImageURI}`,
       (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing Python script: ${error.message}`);
@@ -61,9 +94,7 @@ const callPythonScript = async (imagePath) => {
 
         // Expecting two lines of output from the Python script
         const [croppedImagePath, plotImagePath] = stdout.trim().split("\n");
-        console.log(`Cropped image path: ${croppedImagePath}`);
-        console.log(`Plot image path: ${plotImagePath}`);
-        resolve({ processedImageURI: croppedImagePath, plotImagePath });
+        resolve({ croppedImagePath, plotImagePath });
       }
     );
   });

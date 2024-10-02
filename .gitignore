@@ -5,7 +5,18 @@ frontend/node_modules/
 backend/node_modules/
 frontend/.env
 backend/.env
-
+bakend/public/
+backend/downloads/
+backend/uploads/
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+myenv/
 
 # Expo
 .expo/
