@@ -20,7 +20,7 @@ export async function handleprocess(imageUri, setIsProcessing, navigation) {
       name: "image.jpg",
     });
 
-    const response = await fetch("http://10.0.0.106:3000/processImage", {
+    const response = await fetch("http://10.110.44.197:3000/processImage", {
       method: "POST",
       body: formData,
       // headers: {

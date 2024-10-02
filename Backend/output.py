@@ -61,9 +61,7 @@ def process_image(image_path):
         if straightened_image is not None:
             avg_angle = detect_arrow_direction(straightened_image)
             if avg_angle is not None and (avg_angle > -90 and avg_angle < 90):
-                straightened_image = cv2.flip(straightened_image, 1)
-            elif avg_angle == 90:
-                straightened_image = cv2.flip(straightened_image, 1)
+                straightened_image = cv2.flip(straightened_image, 0)
 
             output_path = os.path.splitext(image_path)[0] + '_processed.png'
             cv2.imwrite(output_path, straightened_image)
@@ -77,17 +75,18 @@ def crop_and_display(image):
     width, height = img.size
     mid = width // 2
     upper = 0
-    left=mid - 100
-    right = mid + 400
+    left=mid - 150
+    right = mid + 500
     lower = height
     lower = img.height
 
     cropped_img = img.crop((left, upper, right, lower))
+    cropped_img.show()
     return cropped_img
 
 def convert_to_bw_and_plot(cropped_img, output_folder):
     img = cropped_img.convert('L')
-    threshold = 170
+    threshold = 190
     bw_img = img.point(lambda x: 255 if x > threshold else 0, '1')
     bw_array = np.array(bw_img)
     signal_array = 1 - bw_array / 255
