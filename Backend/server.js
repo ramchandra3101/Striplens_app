@@ -54,10 +54,9 @@ const processImage = async (imageUri) => {
     const s3ImageURL = await uploadToS3(imageUri, path.basename(imageUri));
     console.log("s3ImageURL: " + s3ImageURL);
 
-    // //Step 2: Using S3 URL to remove Background of Image
+    //Step 2: Using S3 URL to remove Background of Image
 
     const nobgURI = await adoberemove(s3ImageURL);
-    console.log("nobgURI: " + nobgURI);
 
     const folderName = path.basename(s3ImageURL, path.extname(s3ImageURL));
     const localFolderPath = path.join(__dirname, "downloads", folderName);
@@ -67,12 +66,36 @@ const processImage = async (imageUri) => {
 
     try {
       const response = await fetch(nobgURI);
+      console.log("nobgURI: " + nobgURI);
+      console.log("Response status: ", response.status);
 
       if (!response.ok) {
         throw new Error(`Failed to download image from S3 URL: ${nobgURI}`);
       }
 
-      await streamPipeline(response.body, fs.createWriteStream(localImagePath));
+      const contentType = response.headers.get("content-type");
+      console.log("Response Content-Type: ", contentType);
+
+      if (contentType.startsWith("image/")) {
+        const localImagePath = path.join(
+          __dirname,
+          "downloads",
+          folderName,
+          path.basename(nobgURI)
+        );
+
+        // Pipe binary data to the file stream with proper binary encoding
+        const writeStream = fs.createWriteStream(localImagePath, {
+          encoding: "binary",
+        });
+        await streamPipeline(response.body, writeStream);
+
+        console.log("Image saved successfully to:", localImagePath);
+      } else {
+        const jsonResponse = await response.text();
+        console.log("Received JSON response instead of image: ", jsonResponse);
+        throw new Error("Expected image, but got JSON data.");
+      }
     } catch (error) {
       throw new Error(`Error downloading image: ${error.message}`);
     }
