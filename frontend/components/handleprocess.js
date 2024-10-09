@@ -1,4 +1,5 @@
 import { Alert } from "react-native";
+import * as mime from "react-native-mime-types";
 
 export async function handleprocess(imageUri, setIsProcessing, navigation) {
   if (!imageUri) {
@@ -13,14 +14,15 @@ export async function handleprocess(imageUri, setIsProcessing, navigation) {
     const formattedUri = imageUri.startsWith("file://")
       ? imageUri
       : "file://" + imageUri;
+    console.log("Formatted URI:", formattedUri);
 
     formData.append("image", {
       uri: formattedUri,
       type: "image/jpeg",
-      name: "image.jpg",
+      name: "image.jpeg",
     });
 
-    const response = await fetch("http://10.110.44.197:3000/processImage", {
+    const response = await fetch("http://10.110.37.76:3000/processImage", {
       method: "POST",
       body: formData,
       // headers: {

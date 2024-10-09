@@ -1,4 +1,3 @@
-import RemoveBackground from "./RemoveBackground.js";
 import { exec } from "child_process"; // Import exec from child_process
 import path from "path";
 import { fileURLToPath } from "url";
@@ -6,16 +5,32 @@ import express from "express";
 import bodyparser from "body-parser";
 import uploadToS3 from "./uploadtoS3.js";
 import multer from "multer";
+import adoberemove from "./adoberemove.js";
+import fs from "fs"; // Use fs.promises for async operations
+import { pipeline } from "stream";
+import { promisify } from "util";
+import fetch from "node-fetch";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const upload = multer({ dest: "uploads/" });
+const streamPipeline = promisify(pipeline);
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Save in the 'uploads/' directory
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, uniqueSuffix + ext); // Save with original extension
+  },
+});
+
+const upload = multer({ storage: storage });
 app.use(bodyparser.json());
 
-//API endpoint to receive the image URI from mobile app
-
+// API endpoint to receive the image URI from mobile app
 app.post("/processImage", upload.single("image"), async (req, res) => {
   const imageUri = req.file.path;
   console.log("imageUri: " + imageUri);
@@ -25,6 +40,7 @@ app.post("/processImage", upload.single("image"), async (req, res) => {
   }
   try {
     const processedImageUri = await processImage(imageUri);
+    console.log("processedImageUri: " + processedImageUri);
     res.json({ success: true, processedImageUri });
   } catch (error) {
     console.error(`Error processing image: ${error.message}`);
@@ -34,22 +50,36 @@ app.post("/processImage", upload.single("image"), async (req, res) => {
 
 const processImage = async (imageUri) => {
   try {
-    //Step:1 uploading image to S3
+    // Step 1: Uploading image to S3
     const s3ImageURL = await uploadToS3(imageUri, path.basename(imageUri));
+    console.log("s3ImageURL: " + s3ImageURL);
 
-    // Step:2 Usinhg S# URL to remove Background of Image
-    const nobgURI = await RemoveBackground(s3ImageURL);
+    // //Step 2: Using S3 URL to remove Background of Image
+
+    const nobgURI = await adoberemove(s3ImageURL);
+    console.log("nobgURI: " + nobgURI);
 
     const folderName = path.basename(s3ImageURL, path.extname(s3ImageURL));
+    const localFolderPath = path.join(__dirname, "downloads", folderName);
+    const localImagePath = path.join(localFolderPath, path.basename(nobgURI));
 
-    const localImagePath = path.join(
-      __dirname,
-      "downloads",
-      folderName,
-      path.basename(nobgURI)
-    );
+    await fs.promises.mkdir(localFolderPath, { recursive: true });
 
-    //  passING this URI to the Python script
+    try {
+      const response = await fetch(nobgURI);
+
+      if (!response.ok) {
+        throw new Error(`Failed to download image from S3 URL: ${nobgURI}`);
+      }
+
+      await streamPipeline(response.body, fs.createWriteStream(localImagePath));
+    } catch (error) {
+      throw new Error(`Error downloading image: ${error.message}`);
+    }
+
+    // Create the directory if it doesn't exist
+
+    // Passing this URI to the Python script
     const { croppedImagePath, plotImagePath } = await callPythonScript(
       localImagePath
     );
@@ -92,13 +122,13 @@ const callPythonScript = async (processedImageURI) => {
           return;
         }
 
-        // Expecting two lines of output from the Python script
         const [croppedImagePath, plotImagePath] = stdout.trim().split("\n");
         resolve({ croppedImagePath, plotImagePath });
       }
     );
   });
 };
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
